@@ -24,7 +24,13 @@ module DeviseTokenAuth
       if @resource && valid_params?(field, q_value) && (!@resource.respond_to?(:active_for_authentication?) || @resource.active_for_authentication?)
         valid_password = @resource.valid_password?(resource_params[:password])
         if (@resource.respond_to?(:valid_for_authentication?) && !@resource.valid_for_authentication? { valid_password }) || !valid_password
-          return render_create_error_bad_credentials
+          if @resource.respond_to?(:last_attempt?, true) && @resource.send(:last_attempt?) && @resource.class.last_attempt_warning
+            return (Devise.paranoid) ? render_create_error_bad_credentials : render_last_attempt_warning
+          elsif @resource.respond_to?(:attempts_exceeded?, true) && @resource.send(:attempts_exceeded?)
+            return (Devise.paranoid) ? render_create_error_bad_credentials : render_create_error_account_locked
+          else
+            return render_create_error_bad_credentials
+          end
         end
 
         create_and_assign_token
@@ -108,6 +114,10 @@ module DeviseTokenAuth
 
     def render_create_error_not_confirmed
       render_error(401, I18n.t('devise_token_auth.sessions.not_confirmed', email: @resource.email))
+    end
+
+    def render_last_attempt_warning
+      render_error(401, I18n.tx('devise_token_auth.sessions.last_attempt_warning'))
     end
 
     def render_create_error_account_locked

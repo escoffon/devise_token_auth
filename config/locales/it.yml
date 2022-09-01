@@ -5,6 +5,7 @@ it:
       bad_credentials: "Credenziali di login non valide. Riprova."
       not_supported: "Usa POST /sign_in per eseguire il login. GET non è supportato."
       user_not_found: "Utente non trovato o non autenticato."
+      last_attempt_warning: "Credenziali di login non valide. Riprova. Hai ancora un tentativo prima che il tuo account venga bloccato."
     token_validations:
       invalid: "Credenziali di login non valide"
     registrations:
