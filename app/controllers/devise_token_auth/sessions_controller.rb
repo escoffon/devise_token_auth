@@ -117,11 +117,11 @@ module DeviseTokenAuth
     end
 
     def render_last_attempt_warning
-      render_error(401, I18n.tx('devise_token_auth.sessions.last_attempt_warning'))
+      render_error(401, I18n.t('devise_token_auth.sessions.last_attempt_warning'))
     end
 
     def render_create_error_account_locked
-      render_error(401, I18n.t('devise.mailer.unlock_instructions.account_lock_msg'))
+      render_error(401, I18n.t('devise_token_auth.sessions.account_locked'))
     end
 
     def render_create_error_bad_credentials

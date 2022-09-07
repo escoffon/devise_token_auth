@@ -525,6 +525,11 @@ class DeviseTokenAuth::SessionsControllerTest < ActionController::TestCase
           test 'should block the user' do
             assert_equal true, @unlocked_user.reload.access_locked?
           end
+
+          test 'response should return a locked message' do
+            assert @data['errors']
+            assert_equal @data['errors'], [I18n.t('devise_token_auth.sessions.account_locked')]
+          end
         end
 
         describe 'at maximum_attempts - 1 should report a warning' do
@@ -548,6 +553,59 @@ class DeviseTokenAuth::SessionsControllerTest < ActionController::TestCase
           test 'response should contain a warning message' do
             assert @data['errors']
             assert_equal @data['errors'], [I18n.t('devise_token_auth.sessions.last_attempt_warning')]
+          end
+        end
+      end
+      
+      describe 'when Devise.paranoid is set' do
+        before do
+          @paranoid = Devise.paranoid
+          Devise.paranoid = true
+        end
+
+        after do
+          Devise.paranoid = @paranoid
+        end
+
+        describe 'unlocked user with bad password' do
+          before do
+            @unlocked_user = create(:lockable_user)
+            post :create,
+                 params: { email: @unlocked_user.email,
+                           password: 'bad-password' }
+            @data = JSON.parse(response.body)
+          end
+
+          describe 'after maximum_attempts should block the user' do
+            before do
+              4.times do
+                post :create,
+                     params: { email: @unlocked_user.email,
+                               password: 'bad-password' }
+              end
+              @data = JSON.parse(response.body)
+            end
+
+            test 'response should contain a generic failure message' do
+              assert @data['errors']
+              assert_equal @data['errors'], [I18n.t('devise_token_auth.sessions.bad_credentials')]
+            end
+          end
+
+          describe 'at maximum_attempts - 1' do
+            before do
+              3.times do
+                post :create,
+                     params: { email: @unlocked_user.email,
+                               password: 'bad-password' }
+              end
+              @data = JSON.parse(response.body)
+            end
+
+            test 'response should contain a generic failure message' do
+              assert @data['errors']
+              assert_equal @data['errors'], [I18n.t('devise_token_auth.sessions.bad_credentials')]
+            end
           end
         end
       end
