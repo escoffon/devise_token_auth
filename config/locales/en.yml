@@ -5,6 +5,8 @@ en:
       bad_credentials: "Invalid login credentials. Please try again."
       not_supported: "Use POST /sign_in to sign in. GET is not supported."
       user_not_found: "User was not found or was not logged in."
+      last_attempt_warning: "Invalid login credentials. Please try again. You have one more attempt before your account is locked."
+      account_locked: "Your account has been locked due to an excessive number of unsuccessful sign in attempts."
     token_validations:
       invalid: "Invalid login credentials"
     registrations:
