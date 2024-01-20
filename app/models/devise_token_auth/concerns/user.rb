@@ -176,10 +176,10 @@ module DeviseTokenAuth::Concerns::User
       updated_at: now
     )
 
-    update_auth_header(token.token, token.client)
+    update_auth_headers(token.token, token.client)
   end
 
-  def build_auth_header(token, client = 'default')
+  def build_auth_headers(token, client = 'default')
     # client may use expiry to prevent validation request if expired
     # must be cast as string or headers will break
     expiry = tokens[client]['expiry'] || tokens[client][:expiry]
@@ -190,17 +190,19 @@ module DeviseTokenAuth::Concerns::User
       DeviseTokenAuth.headers_names[:"expiry"]       => expiry.to_s,
       DeviseTokenAuth.headers_names[:"uid"]          => uid
     }
-    headers.merge!(build_bearer_token(headers))
+    headers.merge(build_bearer_token(headers))
   end
 
   def build_bearer_token(auth)
+    return {} if DeviseTokenAuth.cookie_enabled # There is no need for the bearer token if it is using cookies
+
     encoded_token = Base64.strict_encode64(auth.to_json)
     bearer_token = "Bearer #{encoded_token}"
-    {DeviseTokenAuth.headers_names[:"authorization"] => bearer_token}
+    { DeviseTokenAuth.headers_names[:"authorization"] => bearer_token }
   end
 
-  def update_auth_header(token, client = 'default')
-    headers = build_auth_header(token, client)
+  def update_auth_headers(token, client = 'default')
+    headers = build_auth_headers(token, client)
     clean_old_tokens
     save!
 
@@ -216,7 +218,7 @@ module DeviseTokenAuth::Concerns::User
 
   def extend_batch_buffer(token, client)
     tokens[client]['updated_at'] = Time.zone.now
-    update_auth_header(token, client)
+    update_auth_headers(token, client)
   end
 
   def confirmed?
