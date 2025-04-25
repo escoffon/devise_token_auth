@@ -141,7 +141,7 @@ module DeviseTokenAuth
     end
 
     def create_and_assign_token
-      if @resource.respond_to?(:with_lock)
+      if @resource.respond_to?(:with_lock) && !@resource.changed?
         @resource.with_lock do
           @token = @resource.create_token
           @resource.save!
